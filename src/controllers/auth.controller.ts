@@ -1,27 +1,27 @@
 import { NextFunction, Request, Response } from 'express'
 import { userSchema } from '../helpers/validation'
-import User from '../models/user'
 import createHttpError from 'http-errors'
 import bcrypt from 'bcryptjs'
 import jwt_helper from '../helpers/jwt_helper'
 import { prisma } from '../config'
+import { passwordHash } from '../helpers/hash'
 
 const AuthController = {
 	create: async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const result = userSchema.parse(req.body)
 
-			const doseExist = await User.findUnique({
+			const doseExist = await prisma.user.findUnique({
 				where: {
 					email: result.email,
 				},
 			})
 
 			if (doseExist) throw createHttpError.Conflict(`${result.email} is already been registered`)
-			const newUser = await User.create({
+			const newUser = await prisma.user.create({
 				data: {
 					email: result.email,
-					password: await User.hashPassword(result.password),
+					password: await passwordHash(result.password),
 				},
 			})
 
@@ -37,7 +37,7 @@ const AuthController = {
 		try {
 			const result = userSchema.parse(req.body)
 
-			const userInfo = await User.findFirstOrThrow({
+			const userInfo = await prisma.user.findFirstOrThrow({
 				where: {
 					email: result.email,
 				},
