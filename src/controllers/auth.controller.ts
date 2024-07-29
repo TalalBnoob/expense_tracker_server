@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { userSchema } from '../helpers/validation'
 import createHttpError from 'http-errors'
 import bcrypt from 'bcryptjs'
-import jwt_helper from '../helpers/jwt_helper'
+import { setUserTokens } from '../helpers/jwt_helper'
 import { prisma } from '../config'
 import { passwordHash } from '../helpers/hash'
 
@@ -25,10 +25,8 @@ const AuthController = {
 				},
 			})
 
-			const access_token = await jwt_helper.accessTokenSing(String(newUser.id))
-			const refresh_token = await jwt_helper.refreshTokenSing(String(newUser.id))
-			await prisma.token.create({ data: { refresh_token: refresh_token, user_id: newUser.id } })
-			res.send({ access_token: access_token, refresh_token: refresh_token, user: newUser })
+			const { accessToken, refreshToken } = await setUserTokens(newUser.id)
+			res.send({ access_token: accessToken, refresh_token: refreshToken, user: newUser })
 		} catch (err) {
 			next(err)
 		}
@@ -47,10 +45,8 @@ const AuthController = {
 
 			if (!(await bcrypt.compare(result.password, userInfo.password))) throw createHttpError.BadRequest()
 
-			const access_token = await jwt_helper.accessTokenSing(String(userInfo.id))
-			const refresh_token = await jwt_helper.refreshTokenSing(String(userInfo.id))
-			await prisma.token.update({ where: { user_id: userInfo.id }, data: { refresh_token: refresh_token } })
-			res.send({ access_token: access_token, refresh_token: refresh_token })
+			const { accessToken, refreshToken } = await setUserTokens(userInfo.id)
+			res.send({ access_token: accessToken, refresh_token: refreshToken })
 		} catch (err) {
 			next(err)
 		}
