@@ -1,8 +1,8 @@
 import Express, { NextFunction, Request, Response } from 'express'
 import dotenv from 'dotenv'
+import createHttpError, { HttpError } from 'http-errors'
 
 import { authRoute } from './routes/auth'
-import createHttpError, { HttpError } from 'http-errors'
 import auth from './middleware/auth'
 
 const PORT = process.env.PORT || 3000
