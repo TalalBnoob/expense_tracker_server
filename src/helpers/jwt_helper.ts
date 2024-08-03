@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 import { prisma } from '../config'
 import createHttpError from 'http-errors'
 
@@ -9,14 +9,13 @@ import createHttpError from 'http-errors'
 */
 export const accessTokenSing = async (userId: number) => {
 	const accessToken = await jwt.sign({ userId }, process.env.AUTH_ACCESS_TOKEN_SECRET as string, {
-		expiresIn: '15m',
+		expiresIn: '45s',
 	})
 	return accessToken
 }
 
 export const accessTokenVerify = (token: string) => {
 	const userId = jwt.verify(token, process.env.AUTH_ACCESS_TOKEN_SECRET as string, {})
-	console.log(userId)
 	return userId
 }
 
@@ -32,19 +31,14 @@ export const refreshTokenSing = async (userId: number) => {
 	return refreshToken
 }
 
-export const refreshTokenVerify = async (token: string) => {
-	try {
-		jwt.verify(token, process.env.AUTH_ACCESS_TOKEN_SECRET as string, {})
-		await prisma.token.findUniqueOrThrow({
-			where: {
-				refresh_token: token,
-			},
-		})
-	} catch (err) {
-		return createHttpError.Unauthorized()
-	}
-
-	return jwt.decode(token)
+export const refreshTokenVerify = async (token: string): Promise<JwtPayload> => {
+	const decodedToken = jwt.verify(token, process.env.AUTH_REFRESH_TOKEN_SECRET as string)
+	await prisma.token.findUniqueOrThrow({
+		where: {
+			refresh_token: token,
+		},
+	})
+	return decodedToken as JwtPayload
 }
 
 /*
@@ -65,7 +59,8 @@ export async function setUserTokens(userId: number) {
 	if (!doseExist) {
 		await prisma.token.create({ data: { refresh_token: refreshToken, user_id: userId } })
 	} else {
-		await prisma.token.update({ where: { user_id: userId }, data: { refresh_token: refreshToken } })
+		await prisma.token.delete({ where: { user_id: userId } })
+		await prisma.token.create({ data: { refresh_token: refreshToken, user_id: userId } })
 	}
 	return { accessToken: accessToken, refreshToken: refreshToken }
 }

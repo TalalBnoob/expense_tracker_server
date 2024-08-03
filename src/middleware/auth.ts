@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
+import { accessTokenVerify } from '../helpers/jwt_helper'
 import createHttpError from 'http-errors'
 
 export default (req: Request, res: Response, next: NextFunction) => {
@@ -8,7 +8,8 @@ export default (req: Request, res: Response, next: NextFunction) => {
 
 		const token = req.headers.authorization.split(' ')[1]
 
-		console.log(jwt.decode(token))
+		accessTokenVerify(token)
+		next()
 	} catch (err) {
 		next(err)
 	}
