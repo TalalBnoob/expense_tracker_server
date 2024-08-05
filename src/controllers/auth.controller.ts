@@ -9,22 +9,26 @@ import { passwordHash } from '../helpers/hash'
 class AuthController {
 	static async create(req: Request, res: Response, next: NextFunction) {
 		try {
-			const result = userSchema.parse(req.body)
+			const result = userSchema.safeParse(req.body)
+
+			if (!result.success)
+				next(createHttpError.BadRequest('Invalid data provided'))
+
+			const email = result.data?.email as string
+			const password = result.data?.password as string
 
 			const doseExist = await prisma.user.findUnique({
 				where: {
-					email: result.email,
+					email: email,
 				},
 			})
 
 			if (doseExist)
-				throw createHttpError.Conflict(
-					`${result.email} is already been registered`,
-				)
+				throw createHttpError.Conflict(`${email} is already been registered`)
 			const newUser = await prisma.user.create({
 				data: {
-					email: result.email,
-					password: await passwordHash(result.password),
+					email: email,
+					password: await passwordHash(password),
 					amount: 0,
 				},
 			})
@@ -42,17 +46,23 @@ class AuthController {
 
 	static async login(req: Request, res: Response, next: NextFunction) {
 		try {
-			const result = userSchema.parse(req.body)
+			const result = userSchema.safeParse(req.body)
+
+			if (!result.success)
+				next(createHttpError.BadRequest('Invalid data provided'))
+
+			const email = result.data?.email as string
+			const password = result.data?.password as string
 
 			const userInfo = await prisma.user.findFirstOrThrow({
 				where: {
-					email: result.email,
+					email: email,
 				},
 			})
 
 			if (!userInfo) throw createHttpError.NotFound()
 
-			if (!(await bcrypt.compare(result.password, userInfo.password)))
+			if (!(await bcrypt.compare(password, userInfo.password)))
 				throw createHttpError.BadRequest()
 
 			const { accessToken, refreshToken } = await setUserTokens(userInfo.id)
