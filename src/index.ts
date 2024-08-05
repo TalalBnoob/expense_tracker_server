@@ -37,5 +37,6 @@ app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
 })
 
 app.listen(PORT, () => {
+	// eslint-disable-next-line no-console
 	console.log(`server ruining on http://localhost:${PORT}`)
 })
