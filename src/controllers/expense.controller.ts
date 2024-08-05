@@ -4,6 +4,9 @@ import { prisma } from '../config'
 import { Decimal } from '@prisma/client/runtime/library'
 
 class expenseController {
+	/* 
+		1. get the data from the req = { title, amount, category_id }
+	*/
 	static async create(req: Request, res: Response, next: NextFunction) {
 		try {
 			const userId: number = req.body.decoded.userId
