@@ -22,6 +22,7 @@ const AuthController = {
 				data: {
 					email: result.email,
 					password: await passwordHash(result.password),
+					amount: 0,
 				},
 			})
 

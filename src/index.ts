@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import createHttpError, { HttpError } from 'http-errors'
 
 import { authRoute } from './routes/auth'
+import { expenseRoute } from './routes/expense'
 import auth from './middleware/auth'
 
 const PORT = process.env.PORT || 3000
@@ -14,10 +15,11 @@ app.use(Express.urlencoded({ extended: true }))
 dotenv.config()
 
 app.get('/', auth, (req, res) => {
-	res.send('authed')
+	res.send(req.body.decoded)
 })
 
 app.use('/auth', authRoute)
+app.use('/expense', expenseRoute)
 
 // Error Handler
 app.use(async (req, res, next) => {

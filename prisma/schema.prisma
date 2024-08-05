@@ -14,7 +14,8 @@ model User {
   id       Int       @id @default(autoincrement())
   email    String    @unique
   password String
-  posts    Expense[]
+  amount   Decimal   @default(1000)
+  expense  Expense[]
   Income   Income[]
   Token    Token?
 }
@@ -51,7 +52,7 @@ model Income {
 
 model Catagory {
   id      Int       @id @default(autoincrement())
-  title   String
+  title   String    @unique
   Expense Expense[]
   Income  Income[]
 }
