@@ -3,8 +3,8 @@ import createHttpError from 'http-errors'
 import { prisma } from '../config'
 import { Decimal } from '@prisma/client/runtime/library'
 
-const expenseController = {
-	create: async (req: Request, res: Response, next: NextFunction) => {
+class expenseController {
+	static async create(req: Request, res: Response, next: NextFunction) {
 		try {
 			const userId: number = req.body.decoded.userId
 			const amount: Decimal = req.body.amount
@@ -39,7 +39,7 @@ const expenseController = {
 		} catch (err) {
 			next(err)
 		}
-	},
+	}
 }
 
 export default expenseController

@@ -6,8 +6,8 @@ import { refreshTokenVerify, setUserTokens } from '../helpers/jwt_helper'
 import { prisma } from '../config'
 import { passwordHash } from '../helpers/hash'
 
-const AuthController = {
-	create: async (req: Request, res: Response, next: NextFunction) => {
+class AuthController {
+	static async create(req: Request, res: Response, next: NextFunction) {
 		try {
 			const result = userSchema.parse(req.body)
 
@@ -38,8 +38,9 @@ const AuthController = {
 		} catch (err) {
 			next(err)
 		}
-	},
-	login: async (req: Request, res: Response, next: NextFunction) => {
+	}
+
+	static async login(req: Request, res: Response, next: NextFunction) {
 		try {
 			const result = userSchema.parse(req.body)
 
@@ -59,8 +60,9 @@ const AuthController = {
 		} catch (err) {
 			next(err)
 		}
-	},
-	refresh: async (req: Request, res: Response, next: NextFunction) => {
+	}
+
+	static async refresh(req: Request, res: Response, next: NextFunction) {
 		try {
 			if (!req.body.token)
 				throw createHttpError.Unauthorized('No token has been provided')
@@ -74,7 +76,7 @@ const AuthController = {
 		} catch (err) {
 			next(err)
 		}
-	},
+	}
 }
 
 export default AuthController
