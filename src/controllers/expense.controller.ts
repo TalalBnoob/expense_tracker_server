@@ -11,9 +11,12 @@ const expenseController = {
 			const title: string = req.body.title
 			const category: string = req.body.category
 
-			if (!amount || !title || !userId || !category) createHttpError.BadRequest()
+			if (!amount || !title || !userId || !category)
+				createHttpError.BadRequest()
 
-			const getCategory = await prisma.catagory.findUnique({ where: { title: category } })
+			const getCategory = await prisma.catagory.findUnique({
+				where: { title: category },
+			})
 
 			const checkAmount = await prisma.user.findUnique({
 				where: {

@@ -17,7 +17,10 @@ const AuthController = {
 				},
 			})
 
-			if (doseExist) throw createHttpError.Conflict(`${result.email} is already been registered`)
+			if (doseExist)
+				throw createHttpError.Conflict(
+					`${result.email} is already been registered`,
+				)
 			const newUser = await prisma.user.create({
 				data: {
 					email: result.email,
@@ -27,7 +30,11 @@ const AuthController = {
 			})
 
 			const { accessToken, refreshToken } = await setUserTokens(newUser.id)
-			res.send({ access_token: accessToken, refresh_token: refreshToken, user: newUser })
+			res.send({
+				access_token: accessToken,
+				refresh_token: refreshToken,
+				user: newUser,
+			})
 		} catch (err) {
 			next(err)
 		}
@@ -44,7 +51,8 @@ const AuthController = {
 
 			if (!userInfo) throw createHttpError.NotFound()
 
-			if (!(await bcrypt.compare(result.password, userInfo.password))) throw createHttpError.BadRequest()
+			if (!(await bcrypt.compare(result.password, userInfo.password)))
+				throw createHttpError.BadRequest()
 
 			const { accessToken, refreshToken } = await setUserTokens(userInfo.id)
 			res.send({ access_token: accessToken, refresh_token: refreshToken })
@@ -54,7 +62,8 @@ const AuthController = {
 	},
 	refresh: async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			if (!req.body.token) throw createHttpError.Unauthorized('No token has been provided')
+			if (!req.body.token)
+				throw createHttpError.Unauthorized('No token has been provided')
 
 			const token = req.body.token
 
