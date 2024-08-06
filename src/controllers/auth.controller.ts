@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { createAuthValidation, userSchema } from '../helpers/validation'
+import { createAuthValidation } from '../helpers/validation'
 import createHttpError from 'http-errors'
 import bcrypt from 'bcryptjs'
 import { refreshTokenVerify, setUserTokens } from '../helpers/jwt_helper'
@@ -18,12 +18,13 @@ class AuthController {
 			})
 
 			if (doseExist)
-				throw createHttpError.Conflict(`${email} is already been registered`)
+				next(createHttpError.Conflict(`${email} is already been registered`))
+
 			const newUser = await prisma.user.create({
 				data: {
 					email: email,
 					password: await passwordHash(password),
-					amount: 0,
+					amount: 1000,
 				},
 			})
 

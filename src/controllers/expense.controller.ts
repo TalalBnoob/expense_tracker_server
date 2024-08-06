@@ -4,22 +4,21 @@ import { prisma } from '../config'
 import { Decimal } from '@prisma/client/runtime/library'
 
 class expenseController {
-	/* 
-		1. get the data from the req = { title, amount, category_id }
-	*/
 	static async create(req: Request, res: Response, next: NextFunction) {
 		try {
 			const userId: number = req.body.decoded.userId
 			const amount: Decimal = req.body.amount
 			const title: string = req.body.title
-			const category: string = req.body.category
+			const categoryId: number = req.body.categoryId
 
-			if (!amount || !title || !userId || !category)
+			if (!amount || !title || !userId || !categoryId)
 				createHttpError.BadRequest()
 
-			const getCategory = await prisma.catagory.findUnique({
-				where: { title: category },
+			const checkCategory = await prisma.category.findFirst({
+				where: { id: categoryId },
 			})
+
+			if (!checkCategory) createHttpError.BadRequest()
 
 			const checkAmount = await prisma.user.findUnique({
 				where: {
@@ -27,18 +26,21 @@ class expenseController {
 				},
 			})
 
-			if (checkAmount && getCategory) {
+			if (checkAmount) {
 				if (amount > checkAmount?.amount) createHttpError.BadRequest()
-				else
-					prisma.expense.create({
+				else {
+					await prisma.transaction.create({
 						data: {
-							title: title,
 							authorId: userId,
 							amount: amount,
-							catagroyId: getCategory.id,
+							title: title,
+							categoryId: categoryId,
+							isExpense: true,
 						},
 					})
+				}
 			}
+			next()
 		} catch (err) {
 			next(err)
 		}
