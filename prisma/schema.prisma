@@ -11,13 +11,12 @@ datasource db {
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  email    String    @unique
-  password String
-  amount   Decimal   @default(1000)
-  expense  Expense[]
-  Income   Income[]
-  Token    Token?
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  password     String
+  amount       Decimal       @default(1000)
+  transactions Transaction[]
+  Token        Token?
 }
 
 model Token {
@@ -26,33 +25,21 @@ model Token {
   user          User   @relation(fields: [user_id], references: [id])
 }
 
-model Expense {
+model Transaction {
   id         Int      @id @default(autoincrement())
   title      String
+  isExpense  Boolean
   amount     Decimal
-  catagroy   Catagory @relation(fields: [catagroyId], references: [id])
+  authorId   Int
+  categoryId Int
   note       String?
   date       DateTime @default(now())
   author     User     @relation(fields: [authorId], references: [id])
-  authorId   Int
-  catagroyId Int
+  category   Category @relation(fields: [categoryId], references: [id])
 }
 
-model Income {
-  id         Int      @id @default(autoincrement())
-  title      String
-  amount     Decimal
-  catagroy   Catagory @relation(fields: [catagroyId], references: [id])
-  note       String?
-  date       DateTime @default(now())
-  author     User     @relation(fields: [authorId], references: [id])
-  authorId   Int
-  catagroyId Int
-}
-
-model Catagory {
-  id      Int       @id @default(autoincrement())
-  title   String    @unique
-  Expense Expense[]
-  Income  Income[]
+model Category {
+  id          Int           @id @default(autoincrement())
+  title       String        @unique
+  transaction Transaction[]
 }
