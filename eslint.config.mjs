@@ -12,7 +12,7 @@ export default [
 		rules: {
 			semi: 0,
 			'@typescript-eslint/no-unused-vars': 0,
-			'no-console': 'warn',
+			// 'no-console': 'warn',
 		},
 	},
 ]

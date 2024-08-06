@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { userSchema } from '../helpers/validation'
+import { createAuthValidation, userSchema } from '../helpers/validation'
 import createHttpError from 'http-errors'
 import bcrypt from 'bcryptjs'
 import { refreshTokenVerify, setUserTokens } from '../helpers/jwt_helper'
@@ -9,13 +9,7 @@ import { passwordHash } from '../helpers/hash'
 class AuthController {
 	static async create(req: Request, res: Response, next: NextFunction) {
 		try {
-			const result = userSchema.safeParse(req.body)
-
-			if (!result.success)
-				next(createHttpError.BadRequest('Invalid data provided'))
-
-			const email = result.data?.email as string
-			const password = result.data?.password as string
+			const { email, password } = createAuthValidation(req.body)
 
 			const doseExist = await prisma.user.findUnique({
 				where: {
@@ -46,13 +40,7 @@ class AuthController {
 
 	static async login(req: Request, res: Response, next: NextFunction) {
 		try {
-			const result = userSchema.safeParse(req.body)
-
-			if (!result.success)
-				next(createHttpError.BadRequest('Invalid data provided'))
-
-			const email = result.data?.email as string
-			const password = result.data?.password as string
+			const { email, password } = createAuthValidation(req.body)
 
 			const userInfo = await prisma.user.findFirstOrThrow({
 				where: {
