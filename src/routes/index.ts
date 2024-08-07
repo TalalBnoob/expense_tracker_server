@@ -2,7 +2,7 @@ import Express, { NextFunction, Request, Response } from 'express'
 import { HttpError } from 'http-errors'
 import auth from '../middleware/auth'
 import { authRoute } from './auth'
-import { expenseRoute } from './expense'
+import { transactionsRoute } from './transactions'
 
 const router = Express.Router()
 
@@ -11,7 +11,7 @@ router.get('/', auth, (req, res) => {
 })
 
 router.use('/auth', authRoute)
-router.use('/expense', expenseRoute)
+router.use('/expense', transactionsRoute)
 
 // Error Handler
 router.use(async (req, res, next) => {
