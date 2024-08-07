@@ -12,35 +12,42 @@ class expenseController {
 			const categoryId: number = req.body.categoryId
 
 			if (!amount || !title || !userId || !categoryId)
-				createHttpError.BadRequest()
+				throw createHttpError.BadRequest()
 
-			const checkCategory = await prisma.category.findFirst({
+			const isCategoryExited = await prisma.category.findFirst({
 				where: { id: categoryId },
 			})
 
-			if (!checkCategory) createHttpError.BadRequest()
+			if (!isCategoryExited)
+				throw createHttpError.BadRequest('Category dose not exited')
 
-			const checkAmount = await prisma.user.findUnique({
+			const user = await prisma.user.findUnique({
 				where: {
 					id: userId,
 				},
 			})
 
-			if (checkAmount) {
-				if (amount > checkAmount?.amount) createHttpError.BadRequest()
-				else {
-					await prisma.transaction.create({
-						data: {
-							authorId: userId,
-							amount: amount,
-							title: title,
-							categoryId: categoryId,
-							isExpense: true,
-						},
-					})
-				}
+			if (user) {
+				if (amount > user.amount)
+					throw createHttpError.BadRequest(
+						"Don't have enough money to make the transaction",
+					)
+
+				await prisma.transaction.create({
+					data: {
+						authorId: userId,
+						amount: amount,
+						title: title,
+						categoryId: categoryId,
+						isExpense: true,
+					},
+				})
+				await prisma.user.update({
+					where: { id: userId },
+					data: { amount: Number(user.amount) - Number(amount) },
+				})
 			}
-			next()
+			console.log('Right Here')
 		} catch (err) {
 			next(err)
 		}

@@ -15,7 +15,7 @@ router.use('/expense', expenseRoute)
 
 // Error Handler
 router.use(async (req, res, next) => {
-	next(createHttpError.NotFound())
+	// next(createHttpError.NotFound())
 })
 
 router.use(

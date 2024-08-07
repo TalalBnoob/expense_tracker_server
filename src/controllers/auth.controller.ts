@@ -18,7 +18,7 @@ class AuthController {
 			})
 
 			if (doseExist)
-				next(createHttpError.Conflict(`${email} is already been registered`))
+				throw createHttpError.Conflict(`${email} is already been registered`)
 
 			const newUser = await prisma.user.create({
 				data: {
