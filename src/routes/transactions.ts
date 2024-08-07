@@ -4,6 +4,7 @@ import auth from '../middleware/auth'
 
 const router = Express.Router()
 
-router.post('/create', auth, transactionsController.create)
+router.post('/create', auth, transactionsController.store)
+router.delete('/:id', auth, transactionsController.destroy)
 
 export { router as transactionsRoute }

@@ -4,7 +4,7 @@ import createHttpError from 'http-errors'
 import { prisma } from '../config'
 
 class transactionsController {
-	static async create(req: Request, res: Response, next: NextFunction) {
+	static async store(req: Request, res: Response, next: NextFunction) {
 		try {
 			const userId: number = req.body.decoded.userId
 			const amount: Decimal = req.body.amount
@@ -34,6 +34,7 @@ class transactionsController {
 						amount: amount,
 						title: title,
 						categoryId: categoryId,
+						// TODO: make it dynamic expense => true || income => false
 						isExpense: true,
 					},
 				})
@@ -42,7 +43,41 @@ class transactionsController {
 					data: { amount: Number(user.amount) - Number(amount) },
 				})
 			}
-			console.log('Right Here')
+			res.send({ message: 'Transaction have been completed' })
+		} catch (err) {
+			next(err)
+		}
+	}
+
+	static async destroy(req: Request, res: Response, next: NextFunction) {
+		try {
+			const userId: number = req.body.decoded.userId
+			const transactionId = req.params.id
+
+			const transaction = await prisma.transaction.findUnique({
+				where: {
+					id: Number(transactionId),
+				},
+			})
+
+			const owner = await prisma.user.findUnique({ where: { id: userId } })
+
+			if (!transaction) throw createHttpError.NotFound('No transaction with this id')
+			if (!owner) throw createHttpError.NotFound('User not found')
+			if (!(transaction.authorId === userId)) throw createHttpError.Unauthorized()
+
+			await prisma.user.update({
+				where: {
+					id: owner.id,
+				},
+				data: {
+					// TODO: should check if it expens or income to knew wither sub the amount or sum it
+					amount: Number(owner.amount) + Number(transaction.amount),
+				},
+			})
+
+			await prisma.transaction.delete({ where: transaction })
+			res.send({ message: 'Transaction have been deleted' })
 		} catch (err) {
 			next(err)
 		}
