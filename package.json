@@ -20,6 +20,7 @@
 		"express": "^4.19.2",
 		"http-errors": "^2.0.0",
 		"jsonwebtoken": "^9.0.2",
+		"prettier-plugin-organize-imports": "^4.0.0",
 		"zod": "^3.23.8"
 	},
 	"devDependencies": {

@@ -6,10 +6,7 @@ export const userSchema = z.object({
 	password: z.string().min(8),
 })
 
-export function createAuthValidation(body: {
-	email: string
-	password: string
-}) {
+export function createAuthValidation(body: { email: string; password: string }) {
 	const result = userSchema.safeParse(body)
 
 	if (!result.success) throw createHttpError.BadRequest('Invalid data provided')

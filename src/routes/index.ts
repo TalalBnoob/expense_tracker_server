@@ -1,8 +1,8 @@
 import Express, { NextFunction, Request, Response } from 'express'
+import { HttpError } from 'http-errors'
 import auth from '../middleware/auth'
 import { authRoute } from './auth'
 import { expenseRoute } from './expense'
-import createHttpError, { HttpError } from 'http-errors'
 
 const router = Express.Router()
 
@@ -18,16 +18,14 @@ router.use(async (req, res, next) => {
 	// next(createHttpError.NotFound())
 })
 
-router.use(
-	(err: HttpError, req: Request, res: Response, next: NextFunction) => {
-		res.status(err.status || 500)
-		res.send({
-			error: {
-				status: err.status || 500,
-				massage: err.message,
-			},
-		})
-	},
-)
+router.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
+	res.status(err.status || 500)
+	res.send({
+		error: {
+			status: err.status || 500,
+			massage: err.message,
+		},
+	})
+})
 
 export default router

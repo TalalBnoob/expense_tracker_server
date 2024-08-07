@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
-import { accessTokenVerify } from '../helpers/jwt_helper'
 import createHttpError from 'http-errors'
+import { accessTokenVerify } from '../helpers/jwt_helper'
 
 export default (req: Request, res: Response, next: NextFunction) => {
 	try {
-		if (!req.headers.authorization)
-			throw createHttpError.Unauthorized('No token has been provided')
+		if (!req.headers.authorization) throw createHttpError.Unauthorized('No token has been provided')
 
 		const token = req.headers.authorization.split(' ')[1]
 

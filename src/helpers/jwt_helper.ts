@@ -1,6 +1,5 @@
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { prisma } from '../config'
-import createHttpError from 'http-errors'
 
 /*
 
@@ -8,22 +7,14 @@ import createHttpError from 'http-errors'
 
 */
 export const accessTokenSing = async (userId: number) => {
-	const accessToken = jwt.sign(
-		{ userId },
-		process.env.AUTH_ACCESS_TOKEN_SECRET as string,
-		{
-			expiresIn: '1h',
-		},
-	)
+	const accessToken = jwt.sign({ userId }, process.env.AUTH_ACCESS_TOKEN_SECRET as string, {
+		expiresIn: '1h',
+	})
 	return accessToken
 }
 
 export const accessTokenVerify = (token: string) => {
-	const decode = jwt.verify(
-		token,
-		process.env.AUTH_ACCESS_TOKEN_SECRET as string,
-		{},
-	)
+	const decode = jwt.verify(token, process.env.AUTH_ACCESS_TOKEN_SECRET as string, {})
 	return decode as JwtPayload
 }
 
@@ -33,23 +24,14 @@ export const accessTokenVerify = (token: string) => {
 
 */
 export const refreshTokenSing = async (userId: number) => {
-	const refreshToken = jwt.sign(
-		{ userId },
-		process.env.AUTH_REFRESH_TOKEN_SECRET as string,
-		{
-			expiresIn: '1y',
-		},
-	)
+	const refreshToken = jwt.sign({ userId }, process.env.AUTH_REFRESH_TOKEN_SECRET as string, {
+		expiresIn: '1y',
+	})
 	return refreshToken
 }
 
-export const refreshTokenVerify = async (
-	token: string,
-): Promise<JwtPayload> => {
-	const decodedToken = jwt.verify(
-		token,
-		process.env.AUTH_REFRESH_TOKEN_SECRET as string,
-	)
+export const refreshTokenVerify = async (token: string): Promise<JwtPayload> => {
+	const decodedToken = jwt.verify(token, process.env.AUTH_REFRESH_TOKEN_SECRET as string)
 	await prisma.token.findUniqueOrThrow({
 		where: {
 			refresh_token: token,

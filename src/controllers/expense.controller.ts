@@ -1,7 +1,7 @@
+import { Decimal } from '@prisma/client/runtime/library'
 import { NextFunction, Request, Response } from 'express'
 import createHttpError from 'http-errors'
 import { prisma } from '../config'
-import { Decimal } from '@prisma/client/runtime/library'
 
 class expenseController {
 	static async create(req: Request, res: Response, next: NextFunction) {
@@ -11,15 +11,13 @@ class expenseController {
 			const title: string = req.body.title
 			const categoryId: number = req.body.categoryId
 
-			if (!amount || !title || !userId || !categoryId)
-				throw createHttpError.BadRequest()
+			if (!amount || !title || !userId || !categoryId) throw createHttpError.BadRequest()
 
 			const isCategoryExited = await prisma.category.findFirst({
 				where: { id: categoryId },
 			})
 
-			if (!isCategoryExited)
-				throw createHttpError.BadRequest('Category dose not exited')
+			if (!isCategoryExited) throw createHttpError.BadRequest('Category dose not exited')
 
 			const user = await prisma.user.findUnique({
 				where: {
@@ -28,10 +26,7 @@ class expenseController {
 			})
 
 			if (user) {
-				if (amount > user.amount)
-					throw createHttpError.BadRequest(
-						"Don't have enough money to make the transaction",
-					)
+				if (amount > user.amount) throw createHttpError.BadRequest("Don't have enough money to make the transaction")
 
 				await prisma.transaction.create({
 					data: {

@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from 'express'
-import { createAuthValidation } from '../helpers/validation'
-import createHttpError from 'http-errors'
 import bcrypt from 'bcryptjs'
-import { refreshTokenVerify, setUserTokens } from '../helpers/jwt_helper'
+import { NextFunction, Request, Response } from 'express'
+import createHttpError from 'http-errors'
 import { prisma } from '../config'
 import { passwordHash } from '../helpers/hash'
+import { refreshTokenVerify, setUserTokens } from '../helpers/jwt_helper'
+import { createAuthValidation } from '../helpers/validation'
 
 class AuthController {
 	static async create(req: Request, res: Response, next: NextFunction) {
@@ -17,8 +17,7 @@ class AuthController {
 				},
 			})
 
-			if (doseExist)
-				throw createHttpError.Conflict(`${email} is already been registered`)
+			if (doseExist) throw createHttpError.Conflict(`${email} is already been registered`)
 
 			const newUser = await prisma.user.create({
 				data: {
@@ -51,8 +50,7 @@ class AuthController {
 
 			if (!userInfo) throw createHttpError.NotFound()
 
-			if (!(await bcrypt.compare(password, userInfo.password)))
-				throw createHttpError.BadRequest()
+			if (!(await bcrypt.compare(password, userInfo.password))) throw createHttpError.BadRequest()
 
 			const { accessToken, refreshToken } = await setUserTokens(userInfo.id)
 			res.send({ access_token: accessToken, refresh_token: refreshToken })
@@ -63,8 +61,7 @@ class AuthController {
 
 	static async refresh(req: Request, res: Response, next: NextFunction) {
 		try {
-			if (!req.body.token)
-				throw createHttpError.Unauthorized('No token has been provided')
+			if (!req.body.token) throw createHttpError.Unauthorized('No token has been provided')
 
 			const token = req.body.token
 
