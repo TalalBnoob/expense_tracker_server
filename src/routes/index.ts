@@ -1,5 +1,5 @@
 import Express, { NextFunction, Request, Response } from 'express'
-import createHttpError, { HttpError } from 'http-errors'
+import { HttpError } from 'http-errors'
 import auth from '../middleware/auth'
 import { authRoute } from './auth'
 import { transactionsRoute } from './transactions'
@@ -15,7 +15,7 @@ router.use('/expense', transactionsRoute)
 
 // Error Handler
 router.use((req, res, next) => {
-	next(createHttpError(404))
+	// next(createHttpError(404))
 })
 
 router.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
