@@ -11,7 +11,7 @@ router.get('/', auth, (req, res) => {
 })
 
 router.use('/auth', authRoute)
-router.use('/expense', transactionsRoute)
+router.use('/transaction', transactionsRoute)
 
 // Error Handler
 router.use((req, res, next) => {
