@@ -4,6 +4,18 @@ import createHttpError from 'http-errors'
 import { prisma } from '../config'
 
 class transactionsController {
+	static async show(req: Request, res: Response, next: NextFunction) {
+		const userId: number = req.body.decoded.userId
+
+		const allUserTransaction = await prisma.transaction.findMany({
+			where: { authorId: userId },
+			include: { category: true },
+		})
+
+		res.status(200)
+		res.send({ status: 200, data: allUserTransaction })
+	}
+
 	static async store(req: Request, res: Response, next: NextFunction) {
 		try {
 			const userId: number = req.body.decoded.userId
