@@ -4,7 +4,7 @@ import createHttpError from 'http-errors'
 import { prisma } from '../config'
 
 class transactionsController {
-	static async show(req: Request, res: Response, next: NextFunction) {
+	static async index(req: Request, res: Response, next: NextFunction) {
 		const userId: number = req.body.decoded.userId
 
 		const allUserTransaction = await prisma.transaction.findMany({
@@ -14,6 +14,28 @@ class transactionsController {
 
 		res.status(200)
 		res.send({ status: 200, data: allUserTransaction })
+	}
+
+	static async show(req: Request, res: Response, next: NextFunction) {
+		const userId: number = req.body.decoded.userId
+		const transactionId = req.params.id
+
+		const transaction = await prisma.transaction.findUnique({
+			where: {
+				id: Number(transactionId),
+			},
+		})
+
+		if (!transaction) throw createHttpError.NotFound('No transaction found')
+		if (transaction.authorId !== userId) throw createHttpError.Unauthorized('Unauthorized transaction')
+
+		res.status(200)
+		res.send({
+			status: 200,
+			date: {
+				transaction,
+			},
+		})
 	}
 
 	static async store(req: Request, res: Response, next: NextFunction) {
