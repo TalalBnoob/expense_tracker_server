@@ -38,6 +38,51 @@ class transactionsController {
 		})
 	}
 
+	static async update(req: Request, res: Response, next: NextFunction) {
+		try {
+			const userId: number = req.body.decoded.userId
+			const transactionId = req.params.id
+			const title: string | null = req.body.title ?? null
+			const amount: Decimal | null = req.body.amount ?? null
+			const categoryId: number | null = req.body.categoryId ?? null
+			const note: string | null = req.body.note ?? null
+
+			const user = await prisma.user.findUnique({ where: { id: userId } })
+			const targetedTransaction = await prisma.transaction.findUnique({
+				where: {
+					id: Number(transactionId),
+				},
+			})
+
+			if (!targetedTransaction) throw createHttpError.NotFound('Transaction not found')
+			if (targetedTransaction.authorId !== user?.id) throw createHttpError.Unauthorized()
+
+			if (title) targetedTransaction.title = title
+			if (categoryId) targetedTransaction.categoryId = categoryId
+			if (note) targetedTransaction.note = note
+			if (amount) {
+				if (targetedTransaction.amount !== amount) {
+					const deff = Number(targetedTransaction.amount) - Number(amount) // 1000 - 1200 = -200
+					if (Number(user.amount) + deff >= 0) {
+						await prisma.user.update({ where: { id: userId }, data: { amount: Number(user.amount) + deff } })
+						targetedTransaction.amount = amount
+					} else throw createHttpError.BadRequest("Don't have enough money to make the transaction")
+				}
+			}
+
+			await prisma.transaction.update({
+				where: {
+					id: targetedTransaction.id,
+				},
+				data: targetedTransaction,
+			})
+			res.status(200)
+			res.send('Update Completed')
+		} catch (err) {
+			next(err)
+		}
+	}
+
 	static async store(req: Request, res: Response, next: NextFunction) {
 		try {
 			const userId: number = req.body.decoded.userId
