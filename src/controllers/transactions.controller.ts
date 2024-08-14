@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import createHttpError from 'http-errors'
 import { prisma } from '../config'
-import { storeTransactionValidation, updateTransactionValidation } from '../helpers/validation'
+import { storeTransactionValidation } from '../helpers/validation'
 
 class transactionsController {
 	static async index(req: Request, res: Response, next: NextFunction) {
@@ -48,7 +48,8 @@ class transactionsController {
 
 	static async update(req: Request, res: Response, next: NextFunction) {
 		try {
-			const { amount, categoryId, decoded, note, title } = await updateTransactionValidation(req.body)
+			// const { amount, categoryId, decoded, note, title } = await updateTransactionValidation(req.body)
+			const { amount, categoryId, decoded, note, title } = req.body
 			const userId = decoded.userId
 			const transactionId = req.params.id
 
@@ -65,12 +66,11 @@ class transactionsController {
 			if (title) targetedTransaction.title = title
 			if (categoryId) targetedTransaction.categoryId = categoryId
 			if (note) targetedTransaction.note = note
-			if (amount && amount >= 0) {
+			if (amount) {
 				if (targetedTransaction.amount !== amount) {
-					const deff = targetedTransaction.amount - amount // 1000 - 1200 = -200
+					const deff = amount - targetedTransaction.amount
 					if (user.amount + deff >= 0) {
 						await prisma.user.update({ where: { id: userId }, data: { amount: user.amount + deff } })
-						targetedTransaction.amount = amount
 					} else throw createHttpError.BadRequest("Don't have enough money to make the transaction")
 				}
 			}
@@ -79,10 +79,10 @@ class transactionsController {
 				where: {
 					id: targetedTransaction.id,
 				},
-				data: targetedTransaction,
+				data: { ...targetedTransaction, amount: amount },
 			})
 			res.status(200)
-			res.send('Update Completed')
+			res.send({ status: 200, message: 'Update Completed' })
 		} catch (err) {
 			next(err)
 		}
@@ -100,7 +100,8 @@ class transactionsController {
 			})
 
 			if (user) {
-				if (amount > user.amount) throw createHttpError.BadRequest("Don't have enough money to make the transaction")
+				if (user.amount + amount < 0)
+					throw createHttpError.BadRequest("Don't have enough money to make the transaction")
 
 				await prisma.transaction.create({
 					data: {
@@ -108,13 +109,11 @@ class transactionsController {
 						amount: amount,
 						title: title,
 						categoryId: categoryId,
-						// TODO: make it dynamic expense => true || income => false
-						isExpense: true,
 					},
 				})
 				await prisma.user.update({
 					where: { id: userId },
-					data: { amount: Number(user.amount) - Number(amount) },
+					data: { amount: user.amount + amount },
 				})
 			}
 			res.send({ message: 'Transaction have been completed' })
@@ -145,8 +144,7 @@ class transactionsController {
 					id: owner.id,
 				},
 				data: {
-					// TODO: should check if it expens or income to knew wither sub the amount or sum it
-					amount: Number(owner.amount) + Number(transaction.amount),
+					amount: Number(owner.amount) - Number(transaction.amount),
 				},
 			})
 

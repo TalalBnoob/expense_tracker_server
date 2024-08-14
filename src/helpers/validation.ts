@@ -56,11 +56,11 @@ export const updateTransactionSchema = z.object({
 })
 
 export async function updateTransactionValidation(body: storeTransactionBody) {
-	const result = updateTransactionSchema.safeParse(body)
+	const result = updateTransactionSchema.parse(body)
 
-	if (!result.success) throw createHttpError.BadRequest('Invalid Data provided')
+	// if (!result.success) throw createHttpError.BadRequest('Invalid Data provided')
 
-	const { amount, categoryId, decoded, note, title } = result.data
+	const { amount, categoryId, decoded, note, title } = result
 
 	if (categoryId) {
 		const isCategoryExited = await prisma.category.findUnique({

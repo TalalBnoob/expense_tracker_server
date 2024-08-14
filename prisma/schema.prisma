@@ -28,7 +28,6 @@ model Token {
 model Transaction {
   id         Int      @id @default(autoincrement())
   title      String
-  isExpense  Boolean
   amount     Int
   authorId   Int
   categoryId Int
