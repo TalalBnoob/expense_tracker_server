@@ -1,7 +1,7 @@
-import { Decimal } from '@prisma/client/runtime/library'
 import { NextFunction, Request, Response } from 'express'
 import createHttpError from 'http-errors'
 import { prisma } from '../config'
+import { storeTransactionValidation, updateTransactionValidation } from '../helpers/validation'
 
 class transactionsController {
 	static async index(req: Request, res: Response, next: NextFunction) {
@@ -9,7 +9,15 @@ class transactionsController {
 
 		const allUserTransaction = await prisma.transaction.findMany({
 			where: { authorId: userId },
-			include: { category: true },
+			select: {
+				id: true,
+				title: true,
+				amount: true,
+				date: true,
+				note: true,
+				author: { select: { email: true } },
+				category: { select: { title: true } },
+			},
 		})
 
 		res.status(200)
@@ -40,12 +48,9 @@ class transactionsController {
 
 	static async update(req: Request, res: Response, next: NextFunction) {
 		try {
-			const userId: number = req.body.decoded.userId
+			const { amount, categoryId, decoded, note, title } = await updateTransactionValidation(req.body)
+			const userId = decoded.userId
 			const transactionId = req.params.id
-			const title: string | null = req.body.title ?? null
-			const amount: Decimal | null = req.body.amount ?? null
-			const categoryId: number | null = req.body.categoryId ?? null
-			const note: string | null = req.body.note ?? null
 
 			const user = await prisma.user.findUnique({ where: { id: userId } })
 			const targetedTransaction = await prisma.transaction.findUnique({
@@ -60,11 +65,11 @@ class transactionsController {
 			if (title) targetedTransaction.title = title
 			if (categoryId) targetedTransaction.categoryId = categoryId
 			if (note) targetedTransaction.note = note
-			if (amount) {
+			if (amount && amount >= 0) {
 				if (targetedTransaction.amount !== amount) {
-					const deff = Number(targetedTransaction.amount) - Number(amount) // 1000 - 1200 = -200
-					if (Number(user.amount) + deff >= 0) {
-						await prisma.user.update({ where: { id: userId }, data: { amount: Number(user.amount) + deff } })
+					const deff = targetedTransaction.amount - amount // 1000 - 1200 = -200
+					if (user.amount + deff >= 0) {
+						await prisma.user.update({ where: { id: userId }, data: { amount: user.amount + deff } })
 						targetedTransaction.amount = amount
 					} else throw createHttpError.BadRequest("Don't have enough money to make the transaction")
 				}
@@ -85,18 +90,8 @@ class transactionsController {
 
 	static async store(req: Request, res: Response, next: NextFunction) {
 		try {
-			const userId: number = req.body.decoded.userId
-			const amount: Decimal = req.body.amount
-			const title: string = req.body.title
-			const categoryId: number = req.body.categoryId
-
-			if (!amount || !title || !userId || !categoryId) throw createHttpError.BadRequest()
-
-			const isCategoryExited = await prisma.category.findFirst({
-				where: { id: categoryId },
-			})
-
-			if (!isCategoryExited) throw createHttpError.BadRequest('Category dose not exited')
+			const { amount, categoryId, title, decoded } = await storeTransactionValidation(req.body)
+			const { userId } = decoded
 
 			const user = await prisma.user.findUnique({
 				where: {
