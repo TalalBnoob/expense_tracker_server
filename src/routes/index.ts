@@ -1,8 +1,7 @@
-import Express, { NextFunction, Request, Response } from 'express'
-import { HttpError } from 'http-errors'
+import Express from 'express'
+import AuthController from '../controllers/auth.controller'
+import transactionsController from '../controllers/transactions.controller'
 import auth from '../middleware/auth'
-import { authRoute } from './auth'
-import { transactionsRoute } from './transactions'
 
 const router = Express.Router()
 
@@ -10,22 +9,16 @@ router.get('/', auth, (req, res) => {
 	res.send(req.body.decoded)
 })
 
-router.use('/auth', authRoute)
-router.use('/transaction', transactionsRoute)
+// Auth Routes
+router.post('/auth/register', AuthController.create)
+router.post('/auth/login', AuthController.login)
+router.post('/auth/refresh', AuthController.refresh)
 
-// Error Handler
-router.use((req, res, next) => {
-	// next(createHttpError(404))
-})
-
-router.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
-	res.status(err.status || 500)
-	res.send({
-		error: {
-			status: err.status || 500,
-			message: err.message,
-		},
-	})
-})
+// Transaction Routes
+router.get('/transaction', auth, transactionsController.index)
+router.get('/transaction/:id', auth, transactionsController.show)
+router.patch('/transaction/edit/:id', auth, transactionsController.update)
+router.post('/transaction/create', auth, transactionsController.store)
+router.delete('/transaction/:id', auth, transactionsController.destroy)
 
 export default router
