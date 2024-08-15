@@ -13,6 +13,7 @@ router.get('/', auth, (req, res) => {
 router.post('/auth/register', AuthController.create)
 router.post('/auth/login', AuthController.login)
 router.post('/auth/refresh', AuthController.refresh)
+router.delete('/auth', auth, AuthController.destroy)
 
 // Transaction Routes
 router.get('/transaction', auth, transactionsController.index)

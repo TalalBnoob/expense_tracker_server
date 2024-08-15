@@ -73,6 +73,23 @@ class AuthController {
 			next(err)
 		}
 	}
+
+	static async destroy(req: Request, res: Response, next: NextFunction) {
+		try {
+			const { userId } = req.body.decoded
+
+			await prisma.token.delete({
+				where: {
+					user_id: userId,
+				},
+			})
+
+			res.status(200)
+			res.send({ status: 200, data: 'Token has been removed' })
+		} catch (err) {
+			next(err)
+		}
+	}
 }
 
 export default AuthController
