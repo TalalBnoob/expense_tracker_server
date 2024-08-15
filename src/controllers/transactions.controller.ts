@@ -6,9 +6,15 @@ import { storeTransactionValidation } from '../helpers/validation'
 class transactionsController {
 	static async index(req: Request, res: Response, next: NextFunction) {
 		const userId: number = req.body.decoded.userId
+		const onlyShow = req.query.show
+		const since = req.query.since
+		console.log(req.query)
 
 		const allUserTransaction = await prisma.transaction.findMany({
-			where: { authorId: userId },
+			where: {
+				authorId: userId,
+				amount: onlyShow === 'income' ? { gte: 0 } : onlyShow === 'expense' ? { lt: 0 } : {},
+			},
 			select: {
 				id: true,
 				title: true,
