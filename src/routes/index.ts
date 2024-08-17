@@ -5,8 +5,8 @@ import auth from '../middleware/auth'
 
 const router = Express.Router()
 
-router.get('/', auth, (req, res) => {
-	res.send(req.body.decoded)
+router.get('/', (req, res) => {
+	res.send('Hello World!')
 })
 
 // Auth Routes
