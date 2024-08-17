@@ -8,7 +8,8 @@ import { prisma } from '../config'
 */
 export const accessTokenSing = async (userId: number) => {
 	const accessToken = jwt.sign({ userId }, process.env.AUTH_ACCESS_TOKEN_SECRET as string, {
-		expiresIn: '1h',
+		// TODO: get it back to '1h'
+		expiresIn: '2y',
 	})
 	return accessToken
 }

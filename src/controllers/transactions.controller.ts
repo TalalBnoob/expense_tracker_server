@@ -1,19 +1,20 @@
 import { NextFunction, Request, Response } from 'express'
 import createHttpError from 'http-errors'
 import { prisma } from '../config'
+import { convertDate } from '../helpers/dateConverter'
 import { storeTransactionValidation } from '../helpers/validation'
 
 class transactionsController {
 	static async index(req: Request, res: Response, next: NextFunction) {
 		const userId: number = req.body.decoded.userId
-		const onlyShow = req.query.show
-		const since = req.query.since
-		console.log(req.query)
+		const { onlyShow, since } = req.query
+		const date = convertDate(String(since))
 
 		const allUserTransaction = await prisma.transaction.findMany({
 			where: {
 				authorId: userId,
 				amount: onlyShow === 'income' ? { gte: 0 } : onlyShow === 'expense' ? { lt: 0 } : {},
+				date: { gte: new Date(date) },
 			},
 			select: {
 				id: true,
