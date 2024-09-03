@@ -23,7 +23,7 @@ export const storeTransactionSchema = z.object({
 	decoded: z.object({ userId: z.number() }),
 	title: z.string(),
 	amount: z.number(),
-	categoryId: number(),
+	categoryId: z.union([z.string(), z.number()]),
 })
 
 export async function storeTransactionValidation(body: storeTransactionBody) {
@@ -32,13 +32,32 @@ export async function storeTransactionValidation(body: storeTransactionBody) {
 	if (!result.success) throw createHttpError.BadRequest('Invalid Data provided')
 	const { amount, categoryId, decoded, title } = result.data
 
-	const isCategoryExited = await prisma.category.findUnique({
-		where: { id: categoryId },
-	})
+	const categories = new Map()
+	categories.set('groceries', 1)
+	categories.set('leisure', 2)
+	categories.set('electronics', 3)
+	categories.set('utilities', 4)
+	categories.set('clothing', 5)
+	categories.set('health', 6)
+	categories.set('others', 7)
+
+	let isCategoryExited
+
+	if (typeof categoryId === 'number') {
+		isCategoryExited = await prisma.category.findUnique({
+			where: { id: categoryId },
+		})
+	} else if (typeof categoryId === 'string') {
+		isCategoryExited = await prisma.category.findUnique({
+			where: { id: categories.get(categoryId) },
+		})
+	}
 
 	if (!isCategoryExited) throw createHttpError.BadRequest('Category dose not exited')
 
-	return { amount, categoryId, title, decoded }
+	const category = isCategoryExited.id
+
+	return { amount, category, title, decoded }
 }
 
 // const userId: number = req.body.decoded.userId

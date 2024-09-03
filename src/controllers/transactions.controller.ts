@@ -97,8 +97,12 @@ class transactionsController {
 
 	static async store(req: Request, res: Response, next: NextFunction) {
 		try {
-			const { amount, categoryId, title, decoded } = await storeTransactionValidation(req.body)
+			const { amount, category, title, decoded } = await storeTransactionValidation(req.body)
 			const { userId } = decoded
+
+			if (typeof category === 'number') {
+				console.log()
+			}
 
 			const user = await prisma.user.findUnique({
 				where: {
@@ -115,7 +119,7 @@ class transactionsController {
 						authorId: userId,
 						amount: amount,
 						title: title,
-						categoryId: categoryId,
+						categoryId: category,
 					},
 				})
 				await prisma.user.update({
