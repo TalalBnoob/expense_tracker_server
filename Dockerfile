@@ -1,0 +1,26 @@
+FROM node:22
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+RUN npx prisma generate
+RUN npx prisma migrate
+
+ENV PORT=8080
+ENV DATABASE_URL="file:./dev.db"
+ENV AUTH_ACCESS_TOKEN_SECRET="5yOJ5DPKlFWS53cAT8zwnUecQjD8sr066q9jE9ayPFk="
+ENV AUTH_ACCESS_TOKEN_EXPIRY=15m
+ENV AUTH_REFRESH_TOKEN_SECRET="y9zGHUue76BtKkY9A8KjACCpn8OVVXxi+jClsdITRpQ="
+ENV AUTH_REFRESH_TOKEN_EXPIRY=120d
+ENV RESET_PASSWORD_TOKEN_EXPIRY_MINS=15
+
+
+EXPOSE 8080
+
+CMD [ "npm","start" ]
